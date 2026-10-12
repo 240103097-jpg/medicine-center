@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Doctors | Medicine Center{% endblock %}
+{% block content %}
+<h1>Doctors</h1>
+{% if doctors %}<ul class="doctor-list">{% for doctor in doctors %}
+<li><h2><a href="{% url 'doctor_detail' doctor.pk %}">{{ doctor.name }}</a></h2><p>{{ doctor.specialty }}</p></li>
+{% endfor %}</ul>{% else %}<p>No doctors are available yet. Please check back later.</p>{% endif %}
+{% endblock %}

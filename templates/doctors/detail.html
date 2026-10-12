@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ doctor.name }} | Medicine Center{% endblock %}
+{% block content %}
+<p><a href="{% url 'doctor_list' %}">Back to doctors</a></p>
+<h1>{{ doctor.name }}</h1><p>{{ doctor.specialty }}</p>
+<div class="doctor-description">{{ doctor.description }}</div>
+{% endblock %}

@@ -11,11 +11,13 @@ main { background: white; padding: clamp(1rem, 4vw, 2rem); border-radius: .75rem
 label { display: block; font-weight: 600; } input { width: 100%; padding: .7rem; font: inherit; border: 1px solid #688295; border-radius: .3rem; }
 button { padding: .7rem 1.2rem; background: #075b91; color: white; border: 0; border-radius: .3rem; font: inherit; cursor: pointer; }
 .helptext { display: block; font-size: .9rem; } .errorlist { color: #a11b25; } .messages { padding: 1rem; background: #e7f4ee; } li { overflow-wrap: anywhere; }
-nav form { margin: 0; } :focus-visible { outline: 3px solid #d18200; outline-offset: 3px; }
+header, main { overflow-wrap: anywhere; } .doctor-description { white-space: pre-wrap; }
+.doctor-list { padding-left: 1.5rem; } nav form { margin: 0; } :focus-visible { outline: 3px solid #d18200; outline-offset: 3px; }
 </style>
 </head>
 <body>
 <header><nav aria-label="Main navigation"><a href="{% url 'home' %}">Medicine Center</a>
+<a href="{% url 'doctor_list' %}">Doctors</a>
 {% if user.is_authenticated %}<span>Signed in as {{ user.email }}</span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Sign out</button></form>
 {% else %}<a href="{% url 'register' %}">Register</a><a href="{% url 'login' %}">Sign in</a>{% endif %}
 </nav></header>

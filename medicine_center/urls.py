@@ -4,7 +4,11 @@ from django.views.generic import TemplateView
 
 from accounts.views import register, EmailLoginView, PatientLogoutView
 
+from doctors.views import doctor_list, doctor_detail
+
 urlpatterns = [
+    path("doctors/", doctor_list, name="doctor_list"),
+    path("doctors/<int:pk>/", doctor_detail, name="doctor_detail"),
     path("register/", register, name="register"),
     path("login/", EmailLoginView.as_view(), name="login"),
     path("logout/", PatientLogoutView.as_view(), name="logout"),

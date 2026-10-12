@@ -1,8 +1,8 @@
 # Medicine Center
 
 Django application for booking in-person medical appointments. Includes patient registration, email sign-in and POST-only sign-out, plus
-the project, custom user model, Django admin and home page. Doctor and
-appointment workflows belong to subsequent issues.
+the project, custom user model, Django admin and home page. Doctor profiles can be added and edited by authorized staff in Django admin,
+and browsed publicly at `/doctors/`. Appointment workflows belong to subsequent issues.
 
 ## Local setup
 
@@ -69,3 +69,12 @@ addresses are trimmed and lowercase; login and duplicate checks ignore case.
 Registration creates an ordinary patient and redirects to sign-in. Sign-in
 returns home unless a safe same-host next destination is supplied. Sign-out
 uses a CSRF-protected POST form and returns home.
+
+## Doctors
+
+A doctor requires a name and specialty (1–200 characters each) and a plain-text
+description (1–5,000 characters). Surrounding whitespace is trimmed. Internal
+spaces and description line breaks are preserved. Use the Doctors section in
+Django admin to add or edit profiles. Staff need the corresponding add/change
+permissions; view permission permits reading only. Public list and profile
+pages are available without signing in.
