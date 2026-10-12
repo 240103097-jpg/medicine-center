@@ -1,8 +1,8 @@
 # Medicine Center
 
-Django application for booking in-person medical appointments. This bootstrap
-includes the project, email-based user model, Django admin and home page.
-Patient and appointment workflows belong to subsequent issues.
+Django application for booking in-person medical appointments. Includes patient registration, email sign-in and POST-only sign-out, plus
+the project, custom user model, Django admin and home page. Doctor and
+appointment workflows belong to subsequent issues.
 
 ## Local setup
 
@@ -60,3 +60,12 @@ persist in the local database.
 Run `python manage.py test` after changes. Tests cover the home page, email
 uniqueness and authentication, password hashing, user permissions and admin
 access. `.gitignore` excludes environments, local databases and secret files.
+
+## Patient accounts
+
+Use the home navigation to register with first name, last name, email and a
+confirmed password. All four Django password validators apply. New email
+addresses are trimmed and lowercase; login and duplicate checks ignore case.
+Registration creates an ordinary patient and redirects to sign-in. Sign-in
+returns home unless a safe same-host next destination is supplied. Sign-out
+uses a CSRF-protected POST form and returns home.
