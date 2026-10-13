@@ -18,7 +18,7 @@ header, main { overflow-wrap: anywhere; } .doctor-description { white-space: pre
 <body>
 <header><nav aria-label="Main navigation"><a href="{% url 'home' %}">Medicine Center</a>
 <a href="{% url 'doctor_list' %}">Doctors</a>
-{% if user.is_authenticated %}<span>Signed in as {{ user.email }}</span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Sign out</button></form>
+{% if user.is_authenticated %}{% if not user.is_staff and not user.is_superuser %}<a href="{% url 'my_appointments' %}">My Appointments</a>{% endif %}<span>Signed in as {{ user.email }}</span><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Sign out</button></form>
 {% else %}<a href="{% url 'register' %}">Register</a><a href="{% url 'login' %}">Sign in</a>{% endif %}
 </nav></header>
 <main>{% if messages %}<ul class="messages" role="status">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>{% endif %}{% block content %}{% endblock %}</main>

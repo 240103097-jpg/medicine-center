@@ -118,3 +118,80 @@ class ConcurrentBookingTests(TransactionTestCase):
                 results = list(pool.map(submit, range(2)))
             self.assertEqual(sorted(results), [302, 409] if same_slot else [302, 302])
             self.assertEqual(Appointment.objects.filter(slot__in=slots).count(), 1 if same_slot else 2)
+
+class PatientManagementTests(TestCase):
+    def setUp(self):
+        BookingTests.setUp(self)
+        self.record = Appointment.objects.create(patient=self.patient, slot=self.slot)
+        self.cancel_url = f"/appointments/{self.record.pk}/cancel/"
+
+    def test_list_isolation_order_history_empty_and_escaping(self):
+        self.assertContains(self.client.get('/appointments/'), '&lt;script&gt;Doctor&lt;/script&gt;')
+        for status in ('Cancelled', 'Completed'):
+            Appointment.objects.create(patient=self.patient, slot=self.slot, status='Cancelled')
+        Appointment.objects.filter(pk=self.record.pk).update(status='Completed')
+        page = self.client.get('/appointments/')
+        self.assertEqual([a.pk for a in page.context['appointments']], list(Appointment.objects.order_by('-pk').values_list('pk', flat=True)))
+        self.assertContains(page, 'Completed')
+        self.assertContains(page, 'Cancelled')
+        self.client.force_login(self.other)
+        self.assertContains(self.client.get('/appointments/'), 'no appointments yet')
+        self.assertEqual(self.client.post(self.cancel_url).status_code, 404)
+        self.assertEqual(self.client.get(f'/appointments/{self.record.pk}/confirmation/').status_code, 404)
+
+    def test_cancel_preserves_history_rebooking_and_ignores_tampering(self):
+        response = self.client.post(self.cancel_url, {'patient': self.other.pk, 'status': 'Completed', 'slot': 999})
+        self.assertEqual(response.status_code, 302)
+        self.record.refresh_from_db()
+        self.assertEqual((self.record.patient_id,self.record.slot_id,self.record.status),(self.patient.pk,self.slot.pk,'Cancelled'))
+        self.assertContains(self.client.get(f'/doctors/{self.doctor.pk}/'), '>Book</button>')
+        self.assertEqual(self.client.post(self.cancel_url).status_code, 409)
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.post(self.url).status_code, 302)
+        self.assertEqual(Appointment.objects.count(), 2)
+        self.assertEqual(Appointment.objects.exclude(status='Cancelled').count(), 1)
+        self.assertEqual(len(self.client.get('/appointments/').context['appointments']), 1)
+
+    def test_cancel_boundaries_status_auth_methods_csrf(self):
+        for now in (self.slot.start, self.slot.start+timedelta(seconds=1)):
+            with patch('appointments.views.timezone.now',return_value=now):
+                self.assertEqual(self.client.post(self.cancel_url).status_code,409)
+                self.assertNotContains(self.client.get('/appointments/'),'Cancel appointment')
+        for status in ('Cancelled','Completed'):
+            Appointment.objects.filter(pk=self.record.pk).update(status=status)
+            self.assertEqual(self.client.post(self.cancel_url).status_code,409)
+            self.record.refresh_from_db(); self.assertEqual(self.record.status,status)
+        self.assertEqual(self.client.get(self.cancel_url).status_code,405)
+        csrf=Client(enforce_csrf_checks=True);csrf.force_login(self.patient)
+        for data in ({},{'csrfmiddlewaretoken':'invalid'}):
+            self.assertEqual(csrf.post(self.cancel_url,data).status_code,403)
+        for url in ('/appointments/bad/cancel/','/appointments/999999/cancel/'):
+            self.assertEqual(self.client.post(url).status_code,404)
+        for flag in ('is_staff','is_superuser'):
+            setattr(self.other,flag,True);self.other.save();self.client.force_login(self.other)
+            self.assertEqual(self.client.get('/appointments/').status_code,403)
+            self.assertEqual(self.client.post(self.cancel_url).status_code,403)
+            setattr(self.other,flag,False);self.other.save()
+        self.client.logout();self.assertIn('next=',self.client.get('/appointments/').url)
+
+
+class CancellationConcurrencyTests(TransactionTestCase):
+    def test_two_independent_cancellations_and_rebooking(self):
+        patient=get_user_model().objects.create_user(email='race@example.com')
+        doctor=Doctor.objects.create(name='Race',specialty='Care',description='Plain')
+        slot=Slot.objects.create(doctor=doctor,start=timezone.now()+timedelta(days=2))
+        record=Appointment.objects.create(patient=patient,slot=slot)
+        clients=[Client(),Client()]
+        for client in clients: client.force_login(patient)
+        barrier=Barrier(2)
+        def cancel_request(client):
+            connections.close_all()
+            try:
+                barrier.wait();return client.post(f'/appointments/{record.pk}/cancel/').status_code
+            finally: connections.close_all()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            self.assertEqual(sorted(pool.map(cancel_request,clients)),[302,409])
+        record.refresh_from_db();self.assertEqual(record.status,'Cancelled')
+        self.assertEqual(clients[0].post(f'/slots/{slot.pk}/book/').status_code,302)
+        self.assertEqual(Appointment.objects.filter(slot=slot).count(),2)
+        self.assertEqual(Appointment.objects.filter(slot=slot).exclude(status='Cancelled').count(),1)

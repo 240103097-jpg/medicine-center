@@ -51,3 +51,36 @@ def confirmation(request, pk):
         return login_redirect(request, request.path)
     appointment = get_object_or_404(Appointment.objects.select_related("slot__doctor"), pk=pk, patient=request.user)
     return render(request, "appointments/confirmation.html", {"appointment": appointment, "selected_date": request.GET.get("date", "")})
+
+
+def patient_access(request):
+    if not request.user.is_authenticated or not request.user.is_active:
+        return login_redirect(request, reverse("my_appointments"))
+    if request.user.is_staff or request.user.is_superuser:
+        return HttpResponseForbidden("Only patient accounts can manage their own appointments.")
+
+
+def my_appointments(request):
+    denied = patient_access(request)
+    if denied is not None:
+        return denied
+    records = Appointment.objects.filter(patient=request.user).select_related("slot__doctor").order_by("-slot__start", "-pk")
+    return render(request, "appointments/history.html", {"appointments": records, "now": timezone.now()})
+
+
+def cancel(request, pk):
+    denied = patient_access(request)
+    if denied is not None:
+        return denied
+    return cancel_post(request, pk)
+
+
+@require_POST
+def cancel_post(request, pk):
+    with transaction.atomic():
+        appointment = get_object_or_404(Appointment, pk=pk, patient=request.user)
+        changed = Appointment.objects.filter(pk=appointment.pk, patient=request.user, status="Booked", slot__start__gt=timezone.now()).update(status="Cancelled")
+        if not changed:
+            return render(request, "appointments/cancel_conflict.html", status=409)
+    messages.success(request, "Your appointment has been cancelled. The slot is available again.")
+    return redirect("my_appointments")

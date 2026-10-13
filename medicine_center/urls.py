@@ -5,9 +5,11 @@ from django.views.generic import TemplateView
 from accounts.views import register, EmailLoginView, PatientLogoutView
 
 from doctors.views import doctor_list, doctor_detail
-from appointments.views import book, confirmation
+from appointments.views import book, confirmation, my_appointments, cancel
 
 urlpatterns = [
+    path("appointments/", my_appointments, name="my_appointments"),
+    path("appointments/<int:pk>/cancel/", cancel, name="cancel_appointment"),
     path("slots/<int:pk>/book/", book, name="book_slot"),
     path("appointments/<int:pk>/confirmation/", confirmation, name="booking_confirmation"),
     path("doctors/", doctor_list, name="doctor_list"),
