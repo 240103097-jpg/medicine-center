@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% load tz %}
+{% block content %}<h1>Booking confirmation</h1>
+<h2>{{ appointment.slot.doctor.name }}</h2><p>{{ appointment.slot.doctor.specialty }}</p>
+<p>{{ appointment.slot.start|localtime|date:"Y-m-d H:i" }} – {{ appointment.slot.end|localtime|date:"Y-m-d H:i" }} (Asia/Almaty)</p>
+<p>Duration: 30 minutes</p><p>Status: {{ appointment.status }}</p>
+<a href="{% url 'doctor_detail' appointment.slot.doctor_id %}{% if selected_date %}?date={{ selected_date|urlencode }}{% endif %}">Back to doctor</a> · <a href="{% url 'doctor_list' %}">All doctors</a>{% endblock %}

@@ -7,5 +7,9 @@
 <div class="doctor-description">{{ doctor.description }}</div>
 <h2>Available appointment slots</h2>
 <p>Times shown in Asia/Almaty. Each appointment lasts 30 minutes.</p>
-<ul>{% for slot in slots %}<li>{{ slot.start|localtime|date:"Y-m-d H:i" }} – {{ slot.end|localtime|date:"Y-m-d H:i" }} (Asia/Almaty)</li>{% empty %}<li>No future appointment slots are available.</li>{% endfor %}</ul>
+<form method="get"><label for="appointment-date">Appointment date (Asia/Almaty)</label><input id="appointment-date" type="date" name="date" value="{{ selected_date }}"><button type="submit">Show slots</button></form>
+{% if date_error %}<p class="errorlist" role="alert">{{ date_error }}</p>{% endif %}
+<ul>{% for slot in slots %}<li>{{ slot.start|localtime|date:"Y-m-d H:i" }} – {{ slot.end|localtime|date:"Y-m-d H:i" }} (Asia/Almaty)
+{% if user.is_authenticated %}{% if not user.is_staff and not user.is_superuser %}<form method="post" action="{% url 'book_slot' slot.pk %}?date={{ selected_date|urlencode }}">{% csrf_token %}<button type="submit">Book</button></form>{% endif %}
+{% else %}<a href="{% url 'book_slot' slot.pk %}?date={{ selected_date|urlencode }}">Sign in to book</a>{% endif %}</li>{% empty %}<li>No future appointment slots are available.</li>{% endfor %}</ul>
 {% endblock %}

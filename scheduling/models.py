@@ -41,6 +41,8 @@ class Slot(models.Model):
             raise ValidationError({"start": "Enter a timezone-aware date and time."})
         previous = type(self).objects.filter(pk=self.pk).first() if self.pk else None
         changed = not previous or previous.start != self.start or previous.doctor_id != self.doctor_id
+        if previous and changed and previous.appointments.exists():
+            raise ValidationError("A slot with appointment history cannot change doctor or start time.")
         if changed and self.start <= timezone.now():
             raise ValidationError({"start": "The slot must start in the future."})
         if self.doctor_id and type(self).objects.filter(doctor_id=self.doctor_id, start__lt=self.end, start__gt=self.start - timedelta(minutes=30)).exclude(pk=self.pk).exists():

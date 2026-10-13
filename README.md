@@ -84,7 +84,13 @@ pages are available without signing in.
 Authorized staff can add/edit 30-minute slots in Django admin. Enter times in
 Asia/Almaty; end times are derived. Starts must be in the future and same-doctor
 intervals cannot overlap. Adjacent intervals are allowed. Doctor profiles show
-future slots in Asia/Almaty. Booking is added by the next issue.
+future free slots in Asia/Almaty, optionally filtered by local date. Ordinary
+signed-in patients can book through a CSRF-protected POST form and see their
+private confirmation. Past and occupied slots return an unavailable message.
+SQLite transactions and a conditional database constraint prevent duplicate
+reservations. Cancelled rows remain history; slots with history cannot change
+doctor/start or be deleted. Patient lists/cancellation and administrator
+appointment transitions belong to subsequent issues.
 
 SQLite uses IMMEDIATE transactions to serialize slot validation and writes.
 Tests use an ignored file-backed test database so concurrent connections exercise

@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block content %}<h1>Appointment unavailable</h1><p>This slot is no longer available. Please choose another future slot.</p><a href="{% url 'doctor_detail' slot.doctor_id %}">Back to doctor</a>{% endblock %}

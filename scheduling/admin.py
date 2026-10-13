@@ -5,6 +5,9 @@ from .models import Slot
 
 @admin.register(Slot)
 class SlotAdmin(admin.ModelAdmin):
+    def has_delete_permission(self, request, obj=None):
+        return super().has_delete_permission(request, obj) and (obj is None or not obj.appointments.exists())
+
     list_display = ["doctor", "local_start", "local_end"]
     readonly_fields = ["local_end"]
     fields = ["doctor", "start", "local_end"]

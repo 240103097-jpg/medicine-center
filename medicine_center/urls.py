@@ -5,8 +5,11 @@ from django.views.generic import TemplateView
 from accounts.views import register, EmailLoginView, PatientLogoutView
 
 from doctors.views import doctor_list, doctor_detail
+from appointments.views import book, confirmation
 
 urlpatterns = [
+    path("slots/<int:pk>/book/", book, name="book_slot"),
+    path("appointments/<int:pk>/confirmation/", confirmation, name="booking_confirmation"),
     path("doctors/", doctor_list, name="doctor_list"),
     path("doctors/<int:pk>/", doctor_detail, name="doctor_detail"),
     path("register/", register, name="register"),
