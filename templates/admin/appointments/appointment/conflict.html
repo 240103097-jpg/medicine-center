@@ -1,0 +1,2 @@
+{% extends "admin/base_site.html" %}
+{% block content %}<p>This appointment cannot make that transition. Only booked appointments can be cancelled; completion requires the appointment to have ended. Cancelled and completed appointments cannot change.</p><a href="{% url 'admin:appointments_appointment_change' appointment.pk %}">Back to appointment</a>{% endblock %}

@@ -1,0 +1,2 @@
+{% extends "admin/change_list.html" %}
+{% block result_list %}{% if not cl.result_count %}<p>No appointments exist.</p>{% endif %}{{ block.super }}{% endblock %}

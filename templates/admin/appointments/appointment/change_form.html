@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+{% block object-tools-items %}
+{{ block.super }}
+{% if original and has_change_permission %}
+<li><form method="post" action="{% url 'admin:appointments_appointment_cancel' original.pk %}">{% csrf_token %}<button type="submit">Cancel appointment</button></form></li>
+<li><form method="post" action="{% url 'admin:appointments_appointment_complete' original.pk %}">{% csrf_token %}<button type="submit">Complete appointment</button></form></li>
+{% endif %}
+{% endblock %}
+{% block submit_buttons_bottom %}{% endblock %}
+{% block submit_buttons_top %}{% endblock %}
