@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 {% block title %}{{ doctor.name }} | Medicine Center{% endblock %}
 {% block content %}
+{% load tz %}
 <p><a href="{% url 'doctor_list' %}">Back to doctors</a></p>
 <h1>{{ doctor.name }}</h1><p>{{ doctor.specialty }}</p>
 <div class="doctor-description">{{ doctor.description }}</div>
+<h2>Available appointment slots</h2>
+<p>Times shown in Asia/Almaty. Each appointment lasts 30 minutes.</p>
+<ul>{% for slot in slots %}<li>{{ slot.start|localtime|date:"Y-m-d H:i" }} – {{ slot.end|localtime|date:"Y-m-d H:i" }} (Asia/Almaty)</li>{% empty %}<li>No future appointment slots are available.</li>{% endfor %}</ul>
 {% endblock %}

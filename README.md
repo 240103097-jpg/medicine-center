@@ -78,3 +78,15 @@ spaces and description line breaks are preserved. Use the Doctors section in
 Django admin to add or edit profiles. Staff need the corresponding add/change
 permissions; view permission permits reading only. Public list and profile
 pages are available without signing in.
+
+## Appointment slots
+
+Authorized staff can add/edit 30-minute slots in Django admin. Enter times in
+Asia/Almaty; end times are derived. Starts must be in the future and same-doctor
+intervals cannot overlap. Adjacent intervals are allowed. Doctor profiles show
+future slots in Asia/Almaty. Booking is added by the next issue.
+
+SQLite uses IMMEDIATE transactions to serialize slot validation and writes.
+Tests use an ignored file-backed test database so concurrent connections exercise
+SQLite writer locking. For isolated verification set `DJANGO_DATABASE_PATH` and
+`DJANGO_TEST_DATABASE_PATH` to separate temporary SQLite paths.
